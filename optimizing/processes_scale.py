@@ -28,17 +28,12 @@ Kubernetes
 """
 from dask.distributed import Client
 
-
 def clean_order(order_id):
     for _ in range(500_000_000):
         pass
     print(f"finished thread {order_id}.")
 
-
-
-
 if __name__ == '__main__':
     client = Client()
     orders = [i * 10 for i in range(5)]
     client.map(clean_order, orders)
-
