@@ -9,8 +9,12 @@ slow - O(n) -
 memory allocation
     extra room for future appends
     old list is copied to the new list
-"""
 
+--------------------------------------------
+
+python -m cProfile -o list_array.prof list_vs_array.py
+snakeviz list_array.prof  
+"""
 import numpy
 
 
