@@ -17,6 +17,14 @@ Threads
     Simple syntax
     High compatibility
 
+---------------------
+
+time python async.py                  
+Order complete.
+Order complete.
+Finished!
+python3 async.py  0.05s user 0.02s system 3% cpu 2.088 total
+
 """
 
 import asyncio
