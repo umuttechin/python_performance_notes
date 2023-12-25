@@ -14,6 +14,23 @@ Do Not Use Threads
     CPU - extensive tasks
     Complex logic
 
+--------------------------------
+
+kernprof -lv thread_synchronizaiton.py
+Wrote profile results to thread_synchronizaiton.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 2.37569 s
+File: thread_synchronizaiton.py
+Function: main at line 39
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    39                                           @profile
+    40                                           def main():
+    41         1    1905788.0    2e+06     80.2      single_thread()
+    42         1     469903.0 469903.0     19.8      multithread()
+
 """
 
 import threading
