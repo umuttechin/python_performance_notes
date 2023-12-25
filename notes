@@ -1,0 +1,1700 @@
+Python measure the performance
+
+time python -c "for _ in range(100_000_000): pass"
+python3 -c "for _ in range(100_000_000): pass"  1.81s user 0.02s system 94% cpu 1.946 total
+
+ $ python -m timeit -c "for _ in range(100_000_000): pass"                                                                                                                                                                    
+1 loop, best of 5: 936 msec per loop
+
+
+
+####################
+import time
+
+def heavy_work():
+    for _ in range(100_000):
+        do_stuff()
+
+def do_stuff():
+    return 1 + 2
+
+start_time = time.time()
+heavy_work()
+end_time = time.time()
+
+print(end_time-start_time)
+
+------------------------------
+
+
+ $ python profile1.py                                                                                                                                                                                                        
+0.0059010982513427734
+------------------------------
+ $ python -m profile profile1.py
+0.2814948558807373  100008 function calls in 0.098 seconds
+
+   Ordered by: standard name
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.094    0.094 :0(exec)
+        1    0.000    0.000    0.000    0.000 :0(print)
+        1    0.005    0.005    0.005    0.005 :0(setprofile)
+        2    0.000    0.000    0.000    0.000 :0(time)
+        1    0.000    0.000    0.094    0.094 profile1.py:1(<module>)
+        1    0.050    0.050    0.093    0.093 profile1.py:3(heavy_work)
+   100000    0.043    0.000    0.043    0.000 profile1.py:7(do_stuff)
+        1    0.000    0.000    0.098    0.098 profile:0(<code object <module> at 0x104c0e710, file "profile1.py", line 1>)
+        0    0.000             0.000          profile:0(profiler)
+------------------------------
+ $ python -m cProfile profile1.py                                                                                                                                                                                         
+0.009616851806640625 100007 function calls in 0.010 seconds
+
+   Ordered by: standard name
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.010    0.010 profile1.py:1(<module>)
+        1    0.007    0.007    0.010    0.010 profile1.py:3(heavy_work)
+   100000    0.003    0.000    0.003    0.000 profile1.py:7(do_stuff)
+        1    0.000    0.000    0.010    0.010 {built-in method builtins.exec}
+        1    0.000    0.000    0.000    0.000 {built-in method builtins.print}
+        2    0.000    0.000    0.000    0.000 {built-in method time.time}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+
+
+
+####################
+import time
+
+@profile
+def heavy_work():
+    print('Do something')
+    print('Do something')
+    print('Do something')
+    for _ in range(100_000):
+        do_stuff()
+    print('Do something')
+    print('Do something')
+    print('Do something')
+def do_stuff():
+    return 1 + 2
+
+start_time = time.time()
+heavy_work()
+end_time = time.time()
+
+print(end_time-start_time)
+
+
+
+
+------------------------------
+
+pip install line_profiler
+
+kernprof -lv profiler2.py 
+Do something
+Do something
+Do something
+Do something
+Do something
+Do something
+0.06821489334106445
+Wrote profile results to profiler2.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 0.037437 s
+File: profiler2.py
+Function: heavy_work at line 3
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+     3                                           @profile
+     4                                           def heavy_work():
+     5         1         95.0     95.0      0.3      print('Do something')
+     6         1          5.0      5.0      0.0      print('Do something')
+     7         1          5.0      5.0      0.0      print('Do something')
+     8    100001      13621.0      0.1     36.4      for _ in range(100_000):
+     9    100000      23686.0      0.2     63.3          do_stuff()
+    10         1         22.0     22.0      0.1      print('Do something')
+    11         1          2.0      2.0      0.0      print('Do something')
+    12         1          1.0      1.0      0.0      print('Do something')
+
+####################
+
+
+
+
+pip install memory_profiler
+
+ $ python -m memory_profiler profile3.py
+Filename: profile3.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+     1   18.828 MiB   18.828 MiB           1   @profile
+     2                                         def create_big_list():
+     3   95.141 MiB   76.312 MiB           1       return 10_000_000 * [0]
+
+
+Filename: profile3.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+     6   95.141 MiB   95.141 MiB           1   @profile
+     7                                         def create_huge_list():
+     8  324.031 MiB  228.891 MiB           1       return 30_000_000 * [0]
+
+
+
+####################
+@profile
+def create_big_list():
+    return 10_000_000 * [0]
+
+
+@profile
+def create_huge_list():
+    return 30_000_000 * [0]
+
+
+create_big_list()
+create_huge_list()
+------------------------------
+pip install snakeviz matplotlib
+
+mprof run  profile3.py              
+mprof: Sampling memory every 0.1s
+running new process
+running as a Python program...
+
+mprof plot  --output profile3.jpg
+Using last profile data.
+
+
+
+####################
+
+import time
+
+def heavy_work():
+    for _ in range(100_000):
+        do_stuff()
+
+def do_stuff():
+    return 1 + 2
+
+start_time = time.time()
+heavy_work()
+end_time = time.time()
+
+print(end_time-start_time)
+
+
+
+
+------------------------------
+
+python -m cProfile -o profile4.prof profile4.py
+snakeviz profile4.prof
+
+
+####################
+
+import random
+import time
+
+def double_first_amount(amount):
+    return amount[0] * 2
+
+def sum_odd_amount(amount):
+    sum = 0
+    for i in amount:
+        if i % 2:
+            sum += i
+    return sum
+
+randomamounts = [random.randint(1, 100) for _ in range(100000)]
+
+
+
+start_time = time.time()
+double_first_amount(randomamounts)
+end_time = time.time()
+double_time = end_time-start_time
+print(double_time)
+
+start_time = time.time()
+sum_odd_amount(randomamounts)
+end_time = time.time()
+sum_time= end_time-start_time
+print(sum_time)
+
+print(double_time/sum_time)
+####################
+
+"""List are;
+ very fast - O(1) -
+    getting
+    setting
+    appending new items
+slow - O(n) -
+    finding
+    removing items
+memory allocation
+    extra room for future appends
+    old list is copied to the new list
+"""
+
+import numpy
+
+
+def double_list(size):
+    initial_list = list(range(size))
+    return [i * 2 for i in initial_list]
+
+def double_numpy(size):
+    initial_array = numpy.arange(size)
+    return list(2 * initial_array)
+
+(double_list(10))
+(double_numpy(10))
+------------------------------
+ $ python -m cProfile -o list_array.prof list_vs_array.py
+ $ snakeviz list_array.prof  
+
+
+
+
+
+
+####################
+
+
+
+
+"""Sets are;
+ very fast - O(1) -
+    adding
+    deleting
+    membership checking
+slow - O(n) -
+    removing duplicates
+
+Tuples are;
+    memory efficient
+    fixed content
+"""
+import random
+
+
+def search(items, collection):
+    count = 0
+    for i in items:
+        if i in collection:
+            count += 1
+    return count
+
+@profile
+def main():
+    SIZE = 1_000_000
+
+    big_list = list(range(SIZE))
+    big_set = set(big_list)
+    big_tuple = tuple(big_list)
+
+    item_2_find = [random.randint(1, SIZE) for _ in range(1000)]
+
+    search(item_2_find, big_list)
+    search(item_2_find, big_set)
+    search(item_2_find, big_tuple)
+
+main()
+
+
+----------------------------
+
+ $ python -m memory_profiler set_vs_tuple.py
+Filename: set_vs_tuple.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    23   20.312 MiB   20.312 MiB           1   @profile
+    24                                         def main():
+    25   20.312 MiB    0.000 MiB           1       SIZE = 1_000_000
+    26                                         
+    27   58.938 MiB   38.625 MiB           1       big_list = list(range(SIZE))
+    28  121.625 MiB   62.688 MiB           1       big_set = set(big_list)
+    29  129.297 MiB    7.672 MiB           1       big_tuple = tuple(big_list)
+    30                                         
+    31  129.391 MiB    0.094 MiB        1003       item_2_find = [random.randint(1, SIZE) for _ in range(1000)]
+    32                                         
+    33  129.391 MiB    0.000 MiB           1       search(item_2_find, big_list)
+    34  129.391 MiB    0.000 MiB           1       search(item_2_find, big_set)
+    35  129.406 MiB    0.016 MiB           1       search(item_2_find, big_tuple)
+----------------------------
+ $ kernprof -lv set_vs_tuple.py                                                                                                                                                                                             
+Wrote profile results to set_vs_tuple.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 6.50834 s
+File: set_vs_tuple.py
+Function: main at line 23
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    23                                           @profile
+    24                                           def main():
+    25         1          1.0      1.0      0.0      SIZE = 1_000_000
+    26                                           
+    27         1      10791.0  10791.0      0.2      big_list = list(range(SIZE))
+    28         1      15609.0  15609.0      0.2      big_set = set(big_list)
+    29         1       2001.0   2001.0      0.0      big_tuple = tuple(big_list)
+    30                                           
+    31         1       1171.0   1171.0      0.0      item_2_find = [random.randint(1, SIZE) for _ in range(1000)]
+    32                                           
+    33         1    3325845.0    3e+06     51.1      search(item_2_find, big_list)
+    34         1        314.0    314.0      0.0      search(item_2_find, big_set)
+    35         1    3152608.0    3e+06     48.4      search(item_2_find, big_tuple)
+
+
+####################
+
+
+
+
+"""Deques are;
+ very fast - O(1) -
+    fast append and pop at the end
+    fast append and pop at the start
+slow - O(n) -
+    slow access by index
+
+List are;
+fast -
+    slow access by index
+    fast append and pop at the end
+slow -
+    slow append and pop at the start
+"""
+
+from collections import deque
+
+@profile
+def main():
+    SIZE = 10000
+
+    big_list = list(range(SIZE))
+    big_deque = deque(big_list)
+
+    while big_list:
+        big_list.pop()
+    while big_deque:
+        big_deque.pop()
+
+    big_list = list(range(SIZE))
+    big_deque = deque(big_list)
+
+    while big_list:
+        big_list.pop(0)
+    while big_deque:
+        big_deque.popleft()
+
+
+
+
+main()
+
+
+
+
+----------------------------
+
+ $ python -m memory_profiler queue_vs_deque.py                                                                                                                                                                               130 ↵
+Filename: queue_vs_deque.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    18   19.062 MiB   19.062 MiB           1   @profile
+    19                                         def main():
+    20   19.062 MiB    0.000 MiB           1       SIZE = 10000
+    21                                         
+    22   19.344 MiB    0.281 MiB           1       big_list = list(range(SIZE))
+    23   19.422 MiB    0.078 MiB           1       big_deque = deque(big_list)
+    24                                         
+    25   19.453 MiB    0.000 MiB       10001       while big_list:
+    26   19.453 MiB    0.031 MiB       10000           big_list.pop()
+    27   19.484 MiB    0.016 MiB       10001       while big_deque:
+    28   19.484 MiB    0.016 MiB       10000           big_deque.pop()
+    29                                         
+    30   19.594 MiB    0.109 MiB           1       big_list = list(range(SIZE))
+    31   19.656 MiB    0.062 MiB           1       big_deque = deque(big_list)
+    32                                         
+    33   19.656 MiB    0.000 MiB       10001       while big_list:
+    34   19.656 MiB    0.000 MiB       10000           big_list.pop(0)
+    35   19.672 MiB    0.016 MiB       10001       while big_deque:
+    36   19.656 MiB    0.000 MiB       10000           big_deque.popleft()
+
+---------------------------- 
+
+
+
+
+
+
+
+ $ kernprof -lv queue_vs_deque.py             
+Wrote profile results to queue_vs_deque.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 0.013528 s
+File: queue_vs_deque.py
+Function: main at line 18
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    18                                           @profile
+    19                                           def main():
+    20         1          0.0      0.0      0.0      SIZE = 10000
+    21                                           
+    22         1         86.0     86.0      0.6      big_list = list(range(SIZE))
+    23         1         84.0     84.0      0.6      big_deque = deque(big_list)
+    24                                           
+    25     10001        761.0      0.1      5.6      while big_list:
+    26     10000       1055.0      0.1      7.8          big_list.pop()
+    27     10001        757.0      0.1      5.6      while big_deque:
+    28     10000       1058.0      0.1      7.8          big_deque.pop()
+    29                                           
+    30         1         96.0     96.0      0.7      big_list = list(range(SIZE))
+    31         1         44.0     44.0      0.3      big_deque = deque(big_list)
+    32                                           
+    33     10001        821.0      0.1      6.1      while big_list:
+    34     10000       6806.0      0.7     50.3          big_list.pop(0)
+    35     10001        807.0      0.1      6.0      while big_deque:
+    36     10000       1153.0      0.1      8.5          big_deque.popleft()
+
+
+
+
+
+
+####################
+
+
+
+
+"""Dictionaries are;
+very fast - O(1) -
+    getting
+    setting
+    deleting
+slow - O(n) -
+    worst cases
+"""
+import random
+
+def search_list(big_list, items):
+    counter = 0
+    for i in items:
+        for j in big_list:
+            if i == j[0]:
+                counter += 1
+    return counter
+
+def search_dict(big_dict, items):
+    counter = 0
+    for i in items:
+        if i in big_dict:
+            counter += 1
+    return counter
+
+@profile
+def main():
+    SIZE = 100000
+    SIZE = 10
+    big_list = []
+    big_dictionary = {}
+
+    for i in range(SIZE):
+        big_list.append([i, i * 2, i * i])
+        big_dictionary[i] = [i * 2, i * i]
+
+    order_2_search = [random.randint(0, SIZE) for _ in range(1000)]
+
+    search_list(big_list, order_2_search)
+    search_dict(big_dictionary, order_2_search)
+
+
+main()
+-------------------------
+
+ $ python -m memory_profiler dictionary.py
+Filename: dictionary.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    26   19.109 MiB   19.109 MiB           1   @profile
+    27                                         def main():
+    28   19.109 MiB    0.000 MiB           1       SIZE = 100000
+    29   19.109 MiB    0.000 MiB           1       big_list = []
+    30   19.109 MiB    0.000 MiB           1       big_dictionary = {}
+    31                                         
+    32   62.359 MiB    0.047 MiB      100001       for i in range(SIZE):
+    33   62.359 MiB   25.469 MiB      100000           big_list.append([i, i * 2, i * i])
+    34   62.359 MiB   17.734 MiB      100000           big_dictionary[i] = [i * 2, i * i]
+    35                                         
+    36   62.391 MiB    0.031 MiB        1003       order_2_search = [random.randint(0, SIZE) for _ in range(1000)]
+    37                                         
+    38   62.391 MiB    0.000 MiB           1       search_list(big_list, order_2_search)
+    39   62.391 MiB    0.000 MiB           1       search_dict(big_dictionary, order_2_search)
+
+
+
+-------------------------
+
+ $ kernprof -lv dictionary.py
+Wrote profile results to dictionary.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 7.06769 s
+File: dictionary.py
+Function: main at line 26
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    26                                           @profile
+    27                                           def main():
+    28         1          0.0      0.0      0.0      SIZE = 100000
+    29         1          0.0      0.0      0.0      big_list = []
+    30         1          0.0      0.0      0.0      big_dictionary = {}
+    31                                           
+    32    100001       8597.0      0.1      0.1      for i in range(SIZE):
+    33    100000      38795.0      0.4      0.5          big_list.append([i, i * 2, i * i])
+    34    100000      16672.0      0.2      0.2          big_dictionary[i] = [i * 2, i * i]
+    35                                           
+    36         1       1066.0   1066.0      0.0      order_2_search = [random.randint(0, SIZE) for _ in range(1000)]
+    37                                           
+    38         1    7002178.0    7e+06     99.1      search_list(big_list, order_2_search)
+    39         1        383.0    383.0      0.0      search_dict(big_dictionary, order_2_search)
+
+
+####################
+
+"""Caching limitations
+    Extra memory
+    no side effect
+    old data
+
+How to use
+    Basic approach with dictionaries
+    Use @lru_cache()
+    Thir party module(joblib) use also disk not only memory
+"""
+import random
+
+"""A basic approach for caching:
+cache = {}
+def heavy_calculation(order_id):
+    if order_id not in cache:
+        do_heavy_work
+        
+        cache[order_id] = ...
+    return cache[order_id]
+"""
+from  functools import lru_cache
+@lru_cache
+def get_order_details(order_id):
+    for i in range(100_000):
+        pass
+    return 1200 * order_id
+
+@profile
+def main():
+    orders_2_search = [random.randint(1, 100) for _ in range(1000)]
+    for order in orders_2_search:
+        get_order_details(order)
+
+main()
+
+------------------------- without lru_cache
+ kernprof -lv caching.py
+Wrote profile results to caching.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 4.25491 s
+File: caching.py
+Function: main at line 29
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    29                                           @profile
+    30                                           def main():
+    31         1       1045.0   1045.0      0.0      orders_2_search = [random.randint(1, 100) for _ in range(1000)]
+    32      1001        147.0      0.1      0.0      for order in orders_2_search:
+    33      1000    4253716.0   4253.7    100.0          get_order_details(order)
+
+------------------------- with lru_cache(10x better)
+kernprof -lv caching.py
+Wrote profile results to caching.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 0.444047 s
+File: caching.py
+Function: main at line 29
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    29                                           @profile
+    30                                           def main():
+    31         1       1207.0   1207.0      0.3      orders_2_search = [random.randint(1, 100) for _ in range(1000)]
+    32      1001         95.0      0.1      0.0      for order in orders_2_search:
+    33      1000     442745.0    442.7     99.7          get_order_details(order)
+
+
+############################
+"""For loops are
+    more flexible
+    better for adding more logic
+    lenghty
+    Slower for simple logic
+
+List comprehension are
+    only for creating a new list
+    great for simple logic
+    concise
+    faster for simple logic
+    set and dictionary comprehensions
+"""
+import random
+
+
+def loop(orders):
+    result = []
+    for amount in orders:
+        if amount > 50:
+            result.append(2 * amount)
+
+    return result
+
+def comprehension(orders):
+    return [2 * i for i in orders if i > 50 ]
+
+@profile
+def main():
+    orders = [random.randint(1, 100) for _ in range(100000)]
+
+    loop(orders)
+    comprehension(orders)
+
+main()
+
+----------------------------
+kernprof -lv for_vs_collections.py
+Wrote profile results to for_vs_collections.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 0.114319 s
+File: for_vs_collections.py
+Function: main at line 28
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    28                                           @profile
+    29                                           def main():
+    30         1      98962.0  98962.0     86.6      orders = [random.randint(1, 100) for _ in range(100000)]
+    31                                           
+    32         1       9926.0   9926.0      8.7      loop(orders)
+    33         1       5431.0   5431.0      4.8      comprehension(orders)
+
+#############################
+
+"""For generator are
+    Lazy version of comprehensions
+    Avoid upfront of full creation
+    Just in time values
+    Read lines from very large files
+    Very low memory usage
+
+Limitations
+    Iterate only once
+    No random cache
+    Less flexible
+    Access only next item
+"""
+import random
+
+def comprehension(orders):
+    return [2 * i for i in orders if i > 50 ]
+
+@profile
+def main():
+    orders = [random.randint(1, 100) for _ in range(100000)]
+
+    comprehension = [2 * i for i in orders if i > 50 ]
+    generator = (2 * i for i in orders if i > 50 )
+
+
+    sum(comprehension)
+    sum(generator)
+
+main()
+
+----------------------------
+
+kernprof -lv generator.py                                                                                                                                                                                                 130 ↵
+Wrote profile results to generator.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 0.114526 s
+File: generator.py
+Function: main at line 19
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    19                                           @profile
+    20                                           def main():
+    21         1     101537.0 101537.0     88.7      orders = [random.randint(1, 100) for _ in range(100000)]
+    22                                           
+    23         1       5653.0   5653.0      4.9      comprehension = [2 * i for i in orders if i > 50 ]
+    24         1          1.0      1.0      0.0      generator = (2 * i for i in orders if i > 50 )
+    25                                           
+    26                                           
+    27         1        220.0    220.0      0.2      sum(comprehension)
+    28         1       7115.0   7115.0      6.2      sum(generator)
+
+
+----------------------------
+
+
+
+
+python -m memory_profiler generator.py
+Filename: generator.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    19   19.875 MiB   19.875 MiB           1   @profile
+    20                                         def main():
+    21   20.641 MiB    0.766 MiB      100003       orders = [random.randint(1, 100) for _ in range(100000)]
+    22                                         
+    23   20.891 MiB    0.250 MiB      100003       comprehension = [2 * i for i in orders if i > 50 ]
+    24   20.906 MiB    0.016 MiB      149913       generator = (2 * i for i in orders if i > 50 )
+    25                                         
+    26                                         
+    27   20.891 MiB    0.000 MiB           1       sum(comprehension)
+    28   20.906 MiB    0.000 MiB           1       sum(generator)
+
+
+#############################
+
+
+"""
+String concatanate
++ -> Strings are immutable, so recreating when modifying them
+    Very friendly
+    Scalable
+    Slow performance
+
+f - string
+    High performance
+    Friendly
+    Not scalable
+
+join()
+    Less friendly
+    Scalable
+    High performance
+"""
+
+"""For generator are
+    Lazy version of comprehensions
+    Avoid upfront of full creation
+    Just in time values
+    Read lines from very large files
+    Very low memory usage
+
+Limitations
+    Iterate only once
+    No random cache
+    Less flexible
+    Access only next item
+"""
+import random
+
+
+@profile
+def main():
+    orders = [str(random.randint(1, 100)) for _ in range(50_000)]
+    report = ""
+    for o in orders:
+        report += o
+
+    "".join(orders)
+main()
+
+--------------------------------
+kernprof -lv concatane_strings.py
+Wrote profile results to concatane_strings.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 0.065553 s
+File: concatane_strings.py
+Function: main at line 35
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    35                                           @profile
+    36                                           def main():
+    37         1      55415.0  55415.0     84.5      orders = [str(random.randint(1, 100)) for _ in range(50_000)]
+    38         1          0.0      0.0      0.0      report = ""
+    39     50001       4004.0      0.1      6.1      for o in orders:
+    40     50000       5881.0      0.1      9.0          report += o
+    41                                           
+    42         1        253.0    253.0      0.4      "".join(orders)
+--------------------------------
+
+python -m memory_profiler concatane_strings.py                  
+Filename: concatane_strings.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    35   20.125 MiB   20.125 MiB           1   @profile
+    36                                         def main():
+    37   23.547 MiB    3.422 MiB       50003       orders = [str(random.randint(1, 100)) for _ in range(50_000)]
+    38   23.547 MiB    0.000 MiB           1       report = ""
+    39   25.844 MiB    0.000 MiB       50001       for o in orders:
+    40   25.844 MiB    2.297 MiB       50000           report += o
+    41                                         
+    42   25.844 MiB    0.000 MiB           1       "".join(orders)
+
+
+#############################
+
+
+
+
+"""
+Permission approach
+    Check if operation will succeed, then proceed
+    Use if statements
+
+Forgiveness
+    Handle problems after they happen
+    Use try/except statements
+    Prevent race condition bugs
+    
+
+If you expect rare bad data use forgiveness,
+but if you expect high amount of bad data,
+then use permission approach!
+"""
+
+import random
+
+def permission(orders):
+    result = []
+    for amount in orders:
+        if type(amount) == int:
+            if amount > 50:
+                result.append(2 * amount)
+    return result
+
+def forgiveness(orders):
+    result = []
+    for amount in orders:
+        try:
+            if amount > 50:
+                result.append(2 * amount)
+        except TypeError:
+            pass
+    return result
+@profile
+def main():
+    orders = [random.randint(1, 100) for _ in range(100000)]
+
+    for i in range(10):
+        orders[i] = "bad data"
+
+    permission(orders)
+    forgiveness(orders)
+
+    for i in range(100000):
+        orders[i] = "bad data"
+
+    permission(orders)
+    forgiveness(orders)
+main()
+
+
+-------------------------------------
+kernprof -lv permission_and_forgiveness.py
+Wrote profile results to permission_and_forgiveness.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 0.195078 s
+File: permission_and_forgiveness.py
+Function: main at line 35
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    35                                           @profile
+    36                                           def main():
+    37         1      99145.0  99145.0     50.8      orders = [random.randint(1, 100) for _ in range(100000)]
+    38                                           
+    39        11          3.0      0.3      0.0      for i in range(10):
+    40        10          2.0      0.2      0.0          orders[i] = "bad data"
+    41                                           
+    42         1      17546.0  17546.0      9.0      permission(orders)
+    43         1      12813.0  12813.0      6.6      forgiveness(orders)
+    44                                           
+    45    100001       7857.0      0.1      4.0      for i in range(100000):
+    46    100000       8447.0      0.1      4.3          orders[i] = "bad data"
+    47                                           
+    48         1       9835.0   9835.0      5.0      permission(orders)
+    49         1      39430.0  39430.0     20.2      forgiveness(orders)
+
+#############################
+
+"""
+Self - sufficient functions
+    Duplicate code
+    Less reusable
+    More difficult to maintain
+    Better performance
+
+Calling other functions
+    Clean code
+    More reusable
+    Easier to maintain
+    Slower performance(overhead of calling many times)
+"""
+
+
+import random
+
+def get_random():
+    return random.randint(0 , 100)
+
+@profile
+def main():
+    SIZE = 25
+    [random.randint(1, 100) for _ in range(SIZE)]
+    [get_random() for _ in range(SIZE)]
+    [(lambda: random.randint(0, 100))() for _ in range(SIZE)]
+    [(lambda: get_random())() for _ in range(SIZE)]
+main()
+
+
+-------------------------------------
+kernprof -lv faster_functions.py
+Wrote profile results to faster_functions.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 0.00013 s
+File: faster_functions.py
+Function: main at line 21
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    21                                           @profile
+    22                                           def main():
+    23         1          1.0      1.0      0.8      SIZE = 25
+    24         1         36.0     36.0     27.7      [random.randint(1, 100) for _ in range(SIZE)]
+    25         1         30.0     30.0     23.1      [get_random() for _ in range(SIZE)]
+    26         1         31.0     31.0     23.8      [(lambda: random.randint(0, 100))() for _ in range(SIZE)]
+    27         1         32.0     32.0     24.6      [(lambda: get_random())() for _ in range(SIZE)]
+
+
+###############################
+"""
+Numpy
+    Unofficial standard for scientific computing
+    Large ecosystem
+    High performance
+    Memory efficient
+
+Pandas
+    Relies on Numpy
+    Data analysis and manipulation
+    Tabular data(csv or from a relational database)
+    High performance
+"""
+import random
+import numpy as np
+
+def loop_approach(orders):
+    result = 0
+    for order in orders:
+        result += order * order
+    return result
+
+
+def numpy_approach(orders):
+    numpy_orders = np.array(orders)
+    return np.sum(numpy_orders * numpy_orders)
+
+@profile
+def main():
+    SIZE = 1000000
+    orders = [random.randint(1, 100) for _ in range(SIZE)]
+    loop_approach(orders)
+    numpy_approach(orders)
+main()
+
+
+
+---------------------------------
+kernprof -lv numerical_calculations.py                                                                                                                                                                                      1 ↵
+Wrote profile results to numerical_calculations.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 1.16833 s
+File: numerical_calculations.py
+Function: main at line 28
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    28                                           @profile
+    29                                           def main():
+    30         1          0.0      0.0      0.0      SIZE = 1000000
+    31         1    1051653.0    1e+06     90.0      orders = [random.randint(1, 100) for _ in range(SIZE)]
+    32         1      89257.0  89257.0      7.6      loop_approach(orders)
+    33         1      27421.0  27421.0      2.3      numpy_approach(orders)
+
+#####################################
+import random
+
+def multiple(order):
+    subtotal, tax, shipping = order
+
+def individual(order):
+    subtotal = order[0]
+    tax = order[1]
+    shipping = order[2]
+@profile
+def main():
+    orders = [(random.randint(1, 100),
+              random.randint(1, 100),
+              random.randint(1, 100)) for _ in range(100_000)]
+
+    for order in orders:
+        multiple(order)
+        individual(order)
+main()
+
+
+---------------------------------
+
+kernprof -lv risky_optimization.py
+Wrote profile results to risky_optimization.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 0.361297 s
+File: risky_optimization.py
+Function: main at line 10
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    10                                           @profile
+    11                                           def main():
+    12         2     310063.0 155031.5     85.8      orders = [(random.randint(1, 100),
+    13                                                         random.randint(1, 100),
+    14         1          1.0      1.0      0.0                random.randint(1, 100)) for _ in range(100_000)]
+    15                                           
+    16    100001       8582.0      0.1      2.4      for order in orders:
+    17    100000      17530.0      0.2      4.9          multiple(order)
+    18    100000      25121.0      0.3      7.0          individual(order)
+
+
+
+
+###############################
+
+"""
+Threads
+    Seperate execution flows
+    Part of a process
+    Concurrency
+    Improve Performance
+    Lightweight
+    Shared memory
+    High potential for bugs
+    GIL(Global Interpreter Lock) Constraint
+
+Processes
+    Heavyweight
+    Separate memory
+    Low potential for bugs
+    No GIL constraint
+
+"""
+---------------------------------
+import threading
+from time import sleep
+
+def process_order(order_id):
+    print(f"process starts with process_id: {order_id}")
+    sleep(1)
+    print(f"process ends with process_id: {order_id}")
+
+thread1 = threading.Thread(target=process_order(10))
+thread2 = threading.Thread(target=process_order(20))
+
+thread1.start()
+thread2.start()
+
+##############################
+
+"""
+Threads challenges are
+    Synchronization threads
+    Troubleshooting
+    GIL
+
+Synchronization threads
+    Race conditions(a value might be modified by other process)
+    Deadlocks(to solve issue of race conditions)
+    Starvation(cannot acquire resources due to other threads)
+    Livelocks(Crash or very slow performance, more threads acquire more locks on the resource)
+
+Troubleshooting
+    Reproducing
+    Debugging
+    Finding the root cause of the issues
+
+GIL
+    Only one thread is running
+    The sleep() function releases the GIL
+    Most impact on CPU - intensive tasks
+"""
+-------------------------------- Non CPU - extensive Tasks(Try with commenting out the thread2)
+import threading
+from time import sleep
+
+def process_order(order_id):
+    print(f"process starts with process_id: {order_id}")
+    sleep(1)
+    print(f"process ends with process_id: {order_id}")
+
+thread1 = threading.Thread(target=process_order, args=(10,))
+thread2 = threading.Thread(target=process_order, args=(20,))
+
+thread1.start()
+#thread2.start()
+--------------------------------
+time python thread_challenges.py
+process starts with process_id: 10
+process ends with process_id: 10
+python3 thread_challenges.py  0.02s user 0.01s system 3% cpu 1.059 total
+--------------------------------
+time python thread_challenges.py
+process starts with process_id: 10
+process ends with process_id: 10
+process starts with process_id: 20
+process ends with process_id: 20
+python3 thread_challenges.py  0.02s user 0.01s system 1% cpu 2.091 total
+-------------------------------- CPU - extensive Tasks(Try with commenting out the thread2)
+
+import threading
+from time import sleep
+
+def process_order(order_id):
+    print(f"process starts with process_id: {order_id}")
+    for _ in range(300_000_000):
+        pass
+    print(f"process ends with process_id: {order_id}")
+
+thread1 = threading.Thread(target=process_order, args=(10,))
+thread2 = threading.Thread(target=process_order, args=(20,))
+
+thread1.start()
+#thread2.start()
+
+--------------------------------
+
+
+ $ time python thread_challenges.py
+process starts with process_id: 10
+process ends with process_id: 10
+python3 thread_challenges.py  2.95s user 0.01s system 99% cpu 2.987 total
+--------------------------------
+time python thread_challenges.py
+process starts with process_id: 10
+process ends with process_id: 10
+process starts with process_id: 20
+process ends with process_id: 20
+python3 thread_challenges.py  5.84s user 0.01s system 99% cpu 5.874 total
+
+
+
+
+############################
+
+"""
+How to Synchronization threads
+    Locks
+    Semaphores(for example; limit hte number of connections to a database)
+    Condition variables(for example; condition variable notify any waiting threads the resource has just been updated)
+
+Use Threads
+    Tasks that wait for external events
+    Blocking I/O
+    Simple logic
+
+Do Not Use Threads
+    No waiting for external events
+    CPU - extensive tasks
+    Complex logic
+
+"""
+
+--------------------------------
+import threading
+from time import sleep
+from urllib import request
+
+def download():
+    return request.urlopen("https://google.com").read()
+
+def single_thread():
+    for _ in range(5):
+        download()
+
+def multithread():
+    threads = []
+    for _ in range(5):
+        threads.append(threading.Thread(target=download))
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+@profile
+def main():
+    single_thread()
+    multithread()
+
+main()
+--------------------------------
+kernprof -lv thread_synchronizaiton.py
+Wrote profile results to thread_synchronizaiton.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 2.37569 s
+File: thread_synchronizaiton.py
+Function: main at line 39
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    39                                           @profile
+    40                                           def main():
+    41         1    1905788.0    2e+06     80.2      single_thread()
+    42         1     469903.0 469903.0     19.8      multithread()
+
+
+############################
+"""
+Asynchronous
+    Inspired from the other languages
+    Reduce potential for bugs
+    Maximize core utilization
+    New syntax, concepts and tools
+
+Asynchronous
+    Low overhead(no switching between threads, happens in inly main thread)
+    Low potential for bugs
+    Learning curve
+    Compatibility constraints
+
+Threads
+    High overhead
+    High potential for bugs
+    Simple syntax
+    High compatibility
+
+"""
+
+import asyncio
+
+async def process_order():
+    await asyncio.sleep(1)
+    print("Order complete.")
+
+
+async def main():
+    await process_order()
+    await process_order()
+    print("Finished!")
+
+asyncio.run(main())
+
+---------------------
+time python async.py                  
+Order complete.
+Order complete.
+Finished!
+python3 async.py  0.05s user 0.02s system 3% cpu 2.088 total
+
+
+############################
+
+"""
+Asynchronous challenges
+    Learning curve
+    Debugging
+    Compatibility
+
+Learning curve
+    New syntax: async and await
+    New concepts: coroutine and event loop
+    New libraries: aoihttp and aiomysql
+
+Debugging
+    Understand order of execution
+    Understand state of application
+
+Compatibility
+    Third - party libraries
+    Blocking code
+
+"""
+--------------------------------
+import asyncio
+
+async def process_order():
+    await asyncio.sleep(1)
+    print("Order complete.")
+
+
+async def main():
+    await asyncio.gather(process_order(), process_order())
+    print("Finished!")
+
+asyncio.run(main())
+
+--------------------------------
+time python async_challenges.py       
+Order complete.
+Order complete.
+Finished!
+python3 async_challenges.py  0.04s user 0.02s system 5% cpu 1.078 total
+--------------------------------
+
+import asyncio
+import time
+async def process_order():
+    await asyncio.sleep(1)
+    time.sleep(3)
+    print("Order complete.")
+
+
+async def main():
+    await asyncio.gather(process_order(), process_order())
+    print("Finished!")
+
+asyncio.run(main())
+--------------------------------
+
+time python async_challenges.py
+Order complete.
+Order complete.
+Finished!
+python3 async_challenges.py  0.06s user 0.02s system 1% cpu 7.152 total
+
+--------------------------------
+
+
+import asyncio
+import time
+async def process_order():
+    #await asyncio.sleep(1)
+    for _ in range(100_000_000):
+        pass
+    print("Order complete.")
+
+
+async def main():
+    await process_order()
+    #await asyncio.gather(process_order(), process_order())
+    print("Finished!")
+
+asyncio.run(main())
+--------------------------------
+time python async_challenges.py
+Order complete.
+Finished!
+python3 async_challenges.py  0.97s user 0.01s system 99% cpu 0.985 total
+
+--------------------------------
+import asyncio
+import time
+async def process_order():
+    #await asyncio.sleep(1)
+    for _ in range(100_000_000):
+        pass
+    print("Order complete.")
+
+
+async def main():
+    #await process_order()
+    await asyncio.gather(process_order(), process_order())
+    print("Finished!")
+
+asyncio.run(main())
+
+
+--------------------------------
+time python async_challenges.py
+Order complete.
+Order complete.
+Finished!
+python3 async_challenges.py  1.90s user 0.02s system 97% cpu 1.965 total
+
+##################################
+"""
+Use Asynchronizations
+    I/O operations
+    Many small tasks(better than multithreading, because it does not have switching overhead between thread)
+    Avoid synchronizing threads
+    Asynchronous dependencies
+    Data processing pipelines
+    Networking applications
+
+Do Not Use Asynchronizations
+    CPU - extensive tasks
+    Blocking code
+    Blocking dependencies
+
+"""
+
+import threading
+from time import sleep
+from urllib import request
+import asyncio
+import aiohttp
+
+def download():
+    return request.urlopen("https://google.com").read()
+
+
+async def async_download(session, url):
+    async with session.get(url) as response:
+        return await response.text()
+
+def synchronous():
+    for _ in range(5):
+        download()
+
+async  def asynchronous():
+    async with aiohttp.ClientSession() as session:
+        coroutines = [async_download(session, "https://google.com") for _ in range(5)]
+        await asyncio.gather(*coroutines)
+
+@profile
+def main():
+    synchronous()
+    asyncio.run(asynchronous())
+
+main()
+
+
+--------------------------------
+
+kernprof -lv async_when.py
+Wrote profile results to async_when.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 2.50919 s
+File: async_when.py
+Function: main at line 40
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    40                                           @profile
+    41                                           def main():
+    42         1    1987187.0    2e+06     79.2      synchronous()
+    43         1     522003.0 522003.0     20.8      asyncio.run(asynchronous())
+
+################################
+"""
+Limitations of Multithreaded and Asynchronous Code
+    Potential for bugs
+    Learning curve
+    CPU intensive tasks(due to they use only one CPU core)
+
+More Processes
+    Seperate memory space
+    No GIL for processes
+    Utilize all CPU cores
+    Increased memory overhead
+    Harder to share resources
+
+"""
+from multiprocessing import Process
+
+def clean_order():
+    for _ in range(500_000_000):
+        pass
+    print("finished.")
+
+if __name__ == '__main__':
+    p1 = Process(target=clean_order)
+    #p2 = Process(target=clean_order)
+
+    p1.start()
+    #p2.start()
+    p1.join()
+    #p2.join()
+-----------------------------------------
+time python processes.py
+finished.
+python3 processes.py  4.93s user 0.02s system 99% cpu 4.974 total
+
+from multiprocessing import Process
+
+def clean_order():
+    for _ in range(500_000_000):
+        pass
+    print("finished.")
+
+if __name__ == '__main__':
+    p1 = Process(target=clean_order)
+    p2 = Process(target=clean_order)
+
+    p1.start()
+    p2.start()
+    p1.join()
+    p2.join()
+-----------------------------------------
+
+
+time python processes.py
+finished.
+python3 processes.py  4.93s user 0.02s system 99% cpu 4.974 total
+
+
+################################
+
+"""
+Multiprocessing
+    More processes
+    Can use more CPU cores
+    CPU - intensive tasks
+    More isolated
+
+Threading/Asyncio
+    One or more threads in a process
+    Can use only one CPU core
+    I/O - intensive task
+    Less isolated
+
+Use Cases
+    Data pipeline
+    Producer - consumer applications
+    Parallelizable workloads
+
+Implementing Multiprocess Applications
+    Use logging and monitoring
+    Terminate cleanly
+    Access to shared resources
+    Limit the number of processes(50 processes on 4 CPU cores)
+
+"""
+--------------------------------------------
+from multiprocessing import Process
+
+def clean_order_process(order_id):
+    for _ in range(500_000_000):
+        pass
+    print(f"finished process {order_id}.")
+
+
+if __name__ == '__main__':
+    p1 = Process(target=clean_order_process, args=(10,))
+    p2 = Process(target=clean_order_process, args=(20,))
+
+    p1.start()
+    p2.start()
+    p1.join()
+    p2.join()
+
+--------------------------------------------
+time python processes_when.py
+finished process 20.
+finished process 10.
+python3 processes_when.py  10.05s user 0.04s system 198% cpu 5.086 total
+
+
+--------------------------------------------
+
+
+import threading
+def clean_order_thread(order_id):
+    for _ in range(500_000_000):
+        pass
+    print(f"finished thread {order_id}.")
+
+
+
+
+if __name__ == '__main__':
+    p1 = threading.Thread(target=clean_order_thread, args=(10,))
+    p2 = threading.Thread(target=clean_order_thread, args=(20,))
+
+    p1.start()
+    p2.start()
+    p1.join()
+    p2.join()
+--------------------------------------------
+time python process_when_threads.py 
+finished thread 10.
+finished thread 20.
+python3 process_when_threads.py  9.32s user 0.04s system 99% cpu 9.373 total
+#############################################
+"""
+Scaling
+    Threading and asyncio on a CPU core
+    Multiprocessing on more CPU cores
+    Use more machines
+
+Celery(open source library)
+    Task queue
+    Data processing
+    Run on many worker machines
+
+Dask
+    Integrates with Numpy and Pandas
+    Data science
+    Scaling from notebook to cluster
+
+Ray
+    Framework for scaling Python applications
+    Scaling from notebook to cluster
+    Designate to be general purpose
+    Machine learning workloads
+
+Kubernetes
+    General purpose
+    Autoscaling
+    Cloud manages service
+
+"""
+----------------------------------------------------
+from dask.distributed import Client
+
+
+def clean_order(order_id):
+    for _ in range(500_000_000):
+        pass
+    print(f"finished thread {order_id}.")
+
+
+
+
+if __name__ == '__main__':
+    client = Client()
+    orders = [i * 10 for i in range(5)]
+    client.map(clean_order, orders)
+
+
+
+
