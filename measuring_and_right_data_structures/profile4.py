@@ -1,3 +1,7 @@
+"""
+python -m cProfile -o profile4.prof profile4.py
+snakeviz profile4.prof
+"""
 import time
 
 def heavy_work():
