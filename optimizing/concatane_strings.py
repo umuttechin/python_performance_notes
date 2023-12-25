@@ -69,7 +69,6 @@ Line #    Mem usage    Increment  Occurrences   Line Contents
 """
 import random
 
-
 @profile
 def main():
     orders = [str(random.randint(1, 100)) for _ in range(50_000)]
@@ -78,5 +77,5 @@ def main():
         report += o
 
     "".join(orders)
+    
 main()
-
