@@ -19,6 +19,17 @@ Line #    Mem usage    Increment  Occurrences   Line Contents
      7                                         def create_huge_list():
      8  324.031 MiB  228.891 MiB           1       return 30_000_000 * [0]
 
+------------------------------
+
+pip install snakeviz matplotlib
+
+mprof run  profile3.py              
+mprof: Sampling memory every 0.1s
+running new process
+running as a Python program...
+
+mprof plot  --output profile3.jpg
+Using last profile data.
 """
 @profile
 def create_big_list():
