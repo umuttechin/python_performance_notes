@@ -32,7 +32,6 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
 
 """
 
-
 import random
 
 def get_random():
@@ -45,4 +44,5 @@ def main():
     [get_random() for _ in range(SIZE)]
     [(lambda: random.randint(0, 100))() for _ in range(SIZE)]
     [(lambda: get_random())() for _ in range(SIZE)]
+    
 main()
