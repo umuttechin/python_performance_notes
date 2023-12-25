@@ -1,3 +1,25 @@
+"""
+python profile1.py                                                                                                                                                                                                        
+0.0059010982513427734
+
+------------------------------
+
+python -m profile profile1.py
+0.2814948558807373  100008 function calls in 0.098 seconds
+
+   Ordered by: standard name
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.094    0.094 :0(exec)
+        1    0.000    0.000    0.000    0.000 :0(print)
+        1    0.005    0.005    0.005    0.005 :0(setprofile)
+        2    0.000    0.000    0.000    0.000 :0(time)
+        1    0.000    0.000    0.094    0.094 profile1.py:1(<module>)
+        1    0.050    0.050    0.093    0.093 profile1.py:3(heavy_work)
+   100000    0.043    0.000    0.043    0.000 profile1.py:7(do_stuff)
+        1    0.000    0.000    0.098    0.098 profile:0(<code object <module> at 0x104c0e710, file "profile1.py", line 1>)
+        0    0.000             0.000          profile:0(profiler)
+"""
 import time
 
 def heavy_work():
