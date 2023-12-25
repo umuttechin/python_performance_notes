@@ -12,6 +12,23 @@ Do Not Use Asynchronizations
     Blocking code
     Blocking dependencies
 
+--------------------------------
+
+kernprof -lv async_when.py
+Wrote profile results to async_when.py.lprof
+Timer unit: 1e-06 s
+
+Total time: 2.50919 s
+File: async_when.py
+Function: main at line 40
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    40                                           @profile
+    41                                           def main():
+    42         1    1987187.0    2e+06     79.2      synchronous()
+    43         1     522003.0 522003.0     20.8      asyncio.run(asynchronous())
+
 """
 
 import threading
