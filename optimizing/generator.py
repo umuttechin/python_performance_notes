@@ -65,7 +65,6 @@ def main():
     comprehension = [2 * i for i in orders if i > 50 ]
     generator = (2 * i for i in orders if i > 50 )
 
-
     sum(comprehension)
     sum(generator)
 
