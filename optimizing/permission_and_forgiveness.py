@@ -8,7 +8,6 @@ Forgiveness
     Use try/except statements
     Prevent race condition bugs
 
-
 If you expect rare bad data use forgiveness,
 but if you expect high amount of bad data,
 then use permission approach!
